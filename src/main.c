@@ -2,7 +2,7 @@
 
 	
 #define COLORS       true
-#define ANTIALIASING false
+#define ANTIALIASING true
 
 #define HAND_MARGIN  10
 #define FINAL_RADIUS 55
@@ -34,34 +34,9 @@ static Layer *s_canvas_layer;
 
 static GPoint s_center;
 static Time s_last_time, s_anim_time;
-static int s_radius = 0; //s_anim_hours_60 = 0;
-static bool s_animating = false;
+static int s_radius = 0; 
+//static bool s_animating = false;
 
-/*************************** AnimationImplementation **************************/
-/*
-static void animation_started(Animation *anim, void *context) {
-  s_animating = true;
-}
-
-static void animation_stopped(Animation *anim, bool stopped, void *context) {
-  s_animating = false;
-}
-
-static void animate(int duration, int delay, AnimationImplementation *implementation, bool handlers) {
-  Animation *anim = animation_create();
-  animation_set_duration(anim, duration);
-  animation_set_delay(anim, delay);
-  animation_set_curve(anim, AnimationCurveEaseInOut);
-  animation_set_implementation(anim, implementation);
-  if(handlers) {
-    animation_set_handlers(anim, (AnimationHandlers) {
-      .started = animation_started,
-      .stopped = animation_stopped
-    }, NULL);
-  }
-  animation_schedule(anim);
-}
-*/
 /************************************ UI **************************************/
 
 static void tick_handler(struct tm *tick_time, TimeUnits changed) {
@@ -106,18 +81,18 @@ static void update_proc(Layer *layer, GContext *ctx) {
   graphics_draw_circle(ctx, s_center, HOURS_TRACK_RADIUS);
 
   // Don't use current time while animating
-  Time mode_time = (s_animating) ? s_anim_time : s_last_time;
+  Time mode_time = s_last_time;
 
   // Adjust for minutes through the hour
   float minute_angle = TRIG_MAX_ANGLE * mode_time.minutes / 60;
-  float hour_angle;
-  if(s_animating) {
+  //float hour_angle;
+  //if(s_animating) {
     // Hours out of 60 for smoothness
-    hour_angle = TRIG_MAX_ANGLE * mode_time.hours / 60;
-  } else {
-    hour_angle = TRIG_MAX_ANGLE * mode_time.hours / 12;
-  }
-  hour_angle += (minute_angle / TRIG_MAX_ANGLE) * (TRIG_MAX_ANGLE / 12);
+    //hour_angle = TRIG_MAX_ANGLE * mode_time.hours / 60;
+  //} else {
+    //hour_angle = TRIG_MAX_ANGLE * mode_time.hours / 12;
+  //}
+  //hour_angle += (minute_angle / TRIG_MAX_ANGLE) * (TRIG_MAX_ANGLE / 12);
   
   // generate position of hands
     GPoint second_hand = (GPoint) {
@@ -170,23 +145,6 @@ static void window_unload(Window *window) {
 
 /*********************************** App **************************************/
 
-static int anim_percentage(uint32_t dist_normalized, int max) {
-  return (int)(float)(((float)dist_normalized / (float)ANIMATION_NORMALIZED_MAX) * (float)max);
-}
-
-static void radius_update(Animation *anim, uint32_t dist_normalized) {
-  s_radius = anim_percentage(dist_normalized, FINAL_RADIUS);
-
-  layer_mark_dirty(s_canvas_layer);
-}
-
-static void hands_update(Animation *anim, uint32_t dist_normalized) {
-  s_anim_time.hours = anim_percentage(dist_normalized, hours_to_minutes(s_last_time.hours));
-  s_anim_time.minutes = anim_percentage(dist_normalized, s_last_time.minutes);
-
-  layer_mark_dirty(s_canvas_layer);
-}
-
 static void init() {
   srand(time(NULL));
 
@@ -202,17 +160,6 @@ static void init() {
   window_stack_push(s_main_window, true);
 
   tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
-
-  // Prepare animations
-  /*AnimationImplementation radius_impl = {
-    .update = radius_update
-  };*/
-  //animate(ANIMATION_DURATION, ANIMATION_DELAY, &radius_impl, false);
-
-  //AnimationImplementation hands_impl = {
-   // .update = hands_update
-  //};
-  //animate(2 * ANIMATION_DURATION, ANIMATION_DELAY, &hands_impl, true);
 }
 
 static void deinit() {
