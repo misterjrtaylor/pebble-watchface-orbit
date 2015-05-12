@@ -19,9 +19,9 @@
 #define HOURS_TRACK_RADIUS 38
 #define HOURS_TRACK_STROKE 9
 
-#define SECONDS_HAND_RADIUS 0
-#define MINUTES_HAND_RADIUS 1
-#define HOURS_HAND_RADIUS 2
+#define SECONDS_HAND_RADIUS 3
+#define MINUTES_HAND_RADIUS 4
+#define HOURS_HAND_RADIUS 5
 
 typedef struct {
   int hours;
@@ -116,16 +116,18 @@ static void update_proc(Layer *layer, GContext *ctx) {
   //};
   
   //set colour for hands
-  graphics_context_set_stroke_color(ctx, GColorChromeYellow );
+  //graphics_context_set_stroke_color(ctx, GColorChromeYellow );
+	
+  graphics_context_set_fill_color(ctx, GColorChromeYellow );
   
   //draw second hand
-  graphics_draw_circle(ctx, second_hand, SECONDS_HAND_RADIUS);
+  graphics_fill_circle(ctx, second_hand, SECONDS_HAND_RADIUS);
   
    //draw minute hand
-  graphics_draw_circle(ctx, minute_hand, MINUTES_HAND_RADIUS);
+  graphics_fill_circle(ctx, minute_hand, MINUTES_HAND_RADIUS);
   
   //draw hour hand
-  graphics_draw_circle(ctx, hour_hand, HOURS_HAND_RADIUS);
+  graphics_fill_circle(ctx, hour_hand, HOURS_HAND_RADIUS);
 }
 
 static void window_load(Window *window) {
