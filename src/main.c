@@ -27,6 +27,7 @@ static TextLayer *s_time_layer;
 
 static GPoint s_center;
 static Time s_last_time;
+static GFont s_custom_font_15;
 
 /************************************ UI **************************************/
 
@@ -131,13 +132,15 @@ static void window_load(Window *window) {
   layer_add_child(window_layer, s_canvas_layer);
 	
 // Create time TextLayer
-  s_time_layer = text_layer_create(GRect(0, 72, 144, 50));
+  s_time_layer = text_layer_create(GRect(0, 76, 144, 50));
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, GColorMidnightGreen);
   text_layer_set_text(s_time_layer, "00:00");
 
+  s_custom_font_15 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_HAPPY_KILLER_15));
   // Improve the layout to be more like a watchface
-  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS));
+  //text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_HAPPY_KILLER_18));
+  text_layer_set_font(s_time_layer, s_custom_font_15);
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 
   // Add it as a child layer to the Window's root layer

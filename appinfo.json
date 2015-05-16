@@ -7,7 +7,14 @@
     "longName": "Orbit",
     "projectType": "native",
     "resources": {
-        "media": []
+        "media": [
+            {
+                "characterRegex": "[0-9:APM ]",
+                "file": "fonts/HappyKiller.ttf",
+                "name": "FONT_HAPPY_KILLER_15",
+                "type": "font"
+            }
+        ]
     },
     "sdkVersion": "3",
     "shortName": "Orbit",
