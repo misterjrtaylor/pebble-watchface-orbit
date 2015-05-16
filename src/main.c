@@ -1,6 +1,6 @@
 #include <pebble.h>
 
-#define ANTIALIASING true
+#define ANTIALIASING True
 
 #define SECONDS_TRACK_RADIUS 62
 #define SECONDS_TRACK_STROKE 5
@@ -154,6 +154,7 @@ static void window_unload(Window *window) {
   layer_destroy(s_canvas_layer);
   // Destroy TextLayer
   text_layer_destroy(s_time_layer);
+  fonts_unload_custom_font(s_custom_font_15);
 }
 
 /*********************************** App **************************************/
