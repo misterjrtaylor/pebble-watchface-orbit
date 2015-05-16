@@ -1,14 +1,6 @@
 #include <pebble.h>
 
-	
-#define COLORS       true
 #define ANTIALIASING true
-
-#define HAND_MARGIN  10
-#define FINAL_RADIUS 55
-
-#define ANIMATION_DURATION 500
-#define ANIMATION_DELAY    600
 
 #define SECONDS_TRACK_RADIUS 62
 #define SECONDS_TRACK_STROKE 5
@@ -31,13 +23,33 @@ typedef struct {
 
 static Window *s_main_window;
 static Layer *s_canvas_layer;
+static TextLayer *s_time_layer;
 
 static GPoint s_center;
-static Time s_last_time, s_anim_time;
-static int s_radius = 0; 
-//static bool s_animating = false;
+static Time s_last_time;
 
 /************************************ UI **************************************/
+
+static void update_time() {
+  // Get a tm structure
+  time_t temp = time(NULL); 
+  struct tm *tick_time = localtime(&temp);
+
+  // Create a long-lived buffer
+  static char buffer[] = "00:00";
+
+  // Write the current hours and minutes into the buffer
+  if(clock_is_24h_style() == true) {
+    // Use 24 hour format
+    strftime(buffer, sizeof("00:00"), "%H:%M", tick_time);
+  } else {
+    // Use 12 hour format
+    strftime(buffer, sizeof("00:00"), "%I:%M", tick_time);
+  }
+
+  // Display this time on the TextLayer
+  text_layer_set_text(s_time_layer, buffer);
+}
 
 static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   // Store time
@@ -50,18 +62,13 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   if(s_canvas_layer) {
     layer_mark_dirty(s_canvas_layer);
   }
-}
-
-static int hours_to_minutes(int hours_out_of_12) {
-  return (int)(float)(((float)hours_out_of_12 / 12.0F) * 60.0F);
+	//update_time();
 }
 
 static void update_proc(Layer *layer, GContext *ctx) {
   // Color background?
-  if(COLORS) {
-    graphics_context_set_fill_color(ctx, GColorCadetBlue);
-    graphics_fill_rect(ctx, GRect(0, 0, 144, 168), 0, GCornerNone);
-  }
+  graphics_context_set_fill_color(ctx, GColorCadetBlue);
+  graphics_fill_rect(ctx, GRect(0, 0, 144, 168), 0, GCornerNone);
 
   //set colour for tracks
   graphics_context_set_stroke_color(ctx, GColorMidnightGreen );
@@ -82,17 +89,6 @@ static void update_proc(Layer *layer, GContext *ctx) {
 
   // Don't use current time while animating
   Time mode_time = s_last_time;
-
-  // Adjust for minutes through the hour
-  float minute_angle = TRIG_MAX_ANGLE * mode_time.minutes / 60;
-  //float hour_angle;
-  //if(s_animating) {
-    // Hours out of 60 for smoothness
-    //hour_angle = TRIG_MAX_ANGLE * mode_time.hours / 60;
-  //} else {
-    //hour_angle = TRIG_MAX_ANGLE * mode_time.hours / 12;
-  //}
-  //hour_angle += (minute_angle / TRIG_MAX_ANGLE) * (TRIG_MAX_ANGLE / 12);
   
   // generate position of hands
     GPoint second_hand = (GPoint) {
@@ -109,14 +105,6 @@ static void update_proc(Layer *layer, GContext *ctx) {
     .x = (int16_t)(sin_lookup(TRIG_MAX_ANGLE * mode_time.hours/ 12) * (int32_t)(HOURS_TRACK_RADIUS) / TRIG_MAX_RATIO) + s_center.x,
     .y = (int16_t)(-cos_lookup(TRIG_MAX_ANGLE * mode_time.hours / 12) * (int32_t)(HOURS_TRACK_RADIUS) / TRIG_MAX_RATIO) + s_center.y,
   };
-  
-  //GPoint hour_hand = (GPoint) {
-  //  .x = (int16_t)(sin_lookup(hour_angle) * (int32_t)(s_radius - (2 * HAND_MARGIN)) / TRIG_MAX_RATIO) + s_center.x,
-  //  .y = (int16_t)(-cos_lookup(hour_angle) * (int32_t)(s_radius - (2 * HAND_MARGIN)) / TRIG_MAX_RATIO) + s_center.y,
-  //};
-  
-  //set colour for hands
-  //graphics_context_set_stroke_color(ctx, GColorChromeYellow );
 	
   graphics_context_set_fill_color(ctx, GColorChromeYellow );
   
@@ -128,6 +116,8 @@ static void update_proc(Layer *layer, GContext *ctx) {
   
   //draw hour hand
   graphics_fill_circle(ctx, hour_hand, HOURS_HAND_RADIUS);
+	
+	update_time();
 }
 
 static void window_load(Window *window) {
@@ -139,10 +129,28 @@ static void window_load(Window *window) {
   s_canvas_layer = layer_create(window_bounds);
   layer_set_update_proc(s_canvas_layer, update_proc);
   layer_add_child(window_layer, s_canvas_layer);
+	
+// Create time TextLayer
+  s_time_layer = text_layer_create(GRect(0, 72, 144, 50));
+  text_layer_set_background_color(s_time_layer, GColorClear);
+  text_layer_set_text_color(s_time_layer, GColorMidnightGreen);
+  text_layer_set_text(s_time_layer, "00:00");
+
+  // Improve the layout to be more like a watchface
+  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS));
+  text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
+
+  // Add it as a child layer to the Window's root layer
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
+	
+	// Make sure the time is displayed from the start
+  update_time();
 }
 
 static void window_unload(Window *window) {
   layer_destroy(s_canvas_layer);
+  // Destroy TextLayer
+  text_layer_destroy(s_time_layer);
 }
 
 /*********************************** App **************************************/
